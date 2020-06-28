@@ -9,10 +9,6 @@ def add_middleware(action, path):
     return modify_settings(**{"MIDDLEWARE": {action: path}})
 
 
-def append_middleware(path):
-    return add_middleware("append", path)
-
-
 def prepend_middleware(path):
     return add_middleware("prepend", path)
 

@@ -16,57 +16,7 @@ ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
 ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
 
 
-class CorsPostCsrfMiddleware(MiddlewareMixin):
-    def _https_referer_replace_reverse(self, request):
-        """
-        Put the HTTP_REFERER back to its original value and delete the
-        temporary storage
-        """
-        if conf.CORS_REPLACE_HTTPS_REFERER and "ORIGINAL_HTTP_REFERER" in request.META:
-            http_referer = request.META["ORIGINAL_HTTP_REFERER"]
-            request.META["HTTP_REFERER"] = http_referer
-            del request.META["ORIGINAL_HTTP_REFERER"]
-
-    def process_request(self, request):
-        self._https_referer_replace_reverse(request)
-        return None
-
-    def process_view(self, request, callback, callback_args, callback_kwargs):
-        self._https_referer_replace_reverse(request)
-        return None
-
-
 class CorsMiddleware(MiddlewareMixin):
-    def _https_referer_replace(self, request):
-        """
-        When https is enabled, django CSRF checking includes referer checking
-        which breaks when using CORS. This function updates the HTTP_REFERER
-        header to make sure it matches HTTP_HOST, provided that our cors logic
-        succeeds
-        """
-        origin = request.META.get("HTTP_ORIGIN")
-
-        if (
-            request.is_secure()
-            and origin
-            and "ORIGINAL_HTTP_REFERER" not in request.META
-        ):
-
-            url = urlparse(origin)
-            if not conf.CORS_ORIGIN_ALLOW_ALL and not self.origin_found_in_white_lists(
-                origin, url
-            ):
-                return
-
-            try:
-                http_referer = request.META["HTTP_REFERER"]
-                http_host = "https://%s/" % request.META["HTTP_HOST"]
-                request.META = request.META.copy()
-                request.META["ORIGINAL_HTTP_REFERER"] = http_referer
-                request.META["HTTP_REFERER"] = http_host
-            except KeyError:
-                pass
-
     def process_request(self, request):
         """
         If CORS preflight header, then create an
@@ -78,8 +28,6 @@ class CorsMiddleware(MiddlewareMixin):
         """
         request._cors_enabled = self.is_enabled(request)
         if request._cors_enabled:
-            if conf.CORS_REPLACE_HTTPS_REFERER:
-                self._https_referer_replace(request)
 
             if (
                 request.method == "OPTIONS"
@@ -88,14 +36,6 @@ class CorsMiddleware(MiddlewareMixin):
                 response = http.HttpResponse()
                 response["Content-Length"] = "0"
                 return response
-
-    def process_view(self, request, callback, callback_args, callback_kwargs):
-        """
-        Do the referer replacement here as well
-        """
-        if request._cors_enabled and conf.CORS_REPLACE_HTTPS_REFERER:
-            self._https_referer_replace(request)
-        return None
 
     def process_response(self, request, response):
         """

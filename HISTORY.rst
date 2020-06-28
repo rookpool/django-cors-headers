@@ -2,6 +2,12 @@ History
 =======
 
 * Drop Django 2.0 and 2.1 support.
+* Drop the ``CORS_REPLACE_HTTPS_REFERER`` setting and the
+  ``CorsPostCsrfMiddleware``. Since Django 1.9, setting the
+  ``CSRF_TRUSTED_ORIGINS`` setting to the list of origins that you trust for
+  has been the preferred solution to passing CSRF checks for CORS requests.
+  The removed setting and middleware were only added as a workaround for Django
+  versions before 1.9.
 
 3.3.0 (2020-06-15)
 ------------------
