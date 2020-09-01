@@ -1,5 +1,5 @@
-django-cors-headers
-===================
+django-cors-headers-rockpool
+============================
 
 .. image:: https://github.com/adamchainz/django-cors-headers/workflows/CI/badge.svg?branch=master
    :target: https://github.com/adamchainz/django-cors-headers/actions?workflow=CI
